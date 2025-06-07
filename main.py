@@ -1,12 +1,16 @@
 from typing import Any
+from threading import Thread
 import pygame
 import math
 import random
-from threading import Thread
+import sys
 
 # Dimensions of window
 WIDTH: int = 1600
 HEIGHT: int = 900
+
+# Colors
+WHITE = (255, 255, 255)
 
 GRAVITY: float = 1
 DAMPING: float = 0.999  # Simulates air resistance
@@ -38,8 +42,14 @@ BALL_START_Y: int = HEIGHT // 2
 LEFT_RIGHT_BOUNDARY: int = WIDTH // 3
 UP_DOWN_BOUNDARY: int = HEIGHT // 4
 
-# Number of threads for mulithreading
-NUM_THREADS: int = 4
+_BORDER_WIDTH = WIDTH - 2 * LEFT_RIGHT_BOUNDARY
+_BORDER_HEIGHT = HEIGHT - 2 * UP_DOWN_BOUNDARY
+_BORDER_TOP = UP_DOWN_BOUNDARY
+_BORDER_SIDE = LEFT_RIGHT_BOUNDARY
+
+
+# Number of threads for mulithreading NOTE: MULTITHREADING IS BROKEN WRT IMAGE THING (maybe due to race conditions)
+NUM_THREADS: int = 1
 SUBSTEPS: int = 1
 
 
@@ -203,9 +213,26 @@ class Util:
                                                         node, otherNode
                                                     )
     
-    # @classmethod
-    # def applyImageToNodes(cls, imgPath: str, reserved_nodes: list[Node]):
+    @classmethod
+    def getRelativePos(cls, node: Node, border_top: int, border_size: int) -> tuple[int, int]:
+        return (round(node.x - border_size), round(node.y - border_top))
 
+    @classmethod
+    def applyImageToNodeColors(cls, imgPath: str, reserved_nodes: list[Node]) -> None:
+        import PIL.Image
+        import numpy as np
+
+        image = PIL.Image.open(imgPath).resize((_BORDER_HEIGHT, _BORDER_WIDTH)).convert("RGB")
+        image = np.array(image)
+
+        for node in reserved_nodes:
+            relative_x, relative_y = cls.getRelativePos(node, _BORDER_TOP, _BORDER_SIDE)
+            r, g, b = image[relative_x][relative_y]
+            node.color = (r, g, b)
+            node.x = BALL_START_X
+            node.y = BALL_START_Y
+            node.prev_x=BALL_START_X - INITIAL_VELOCITY_X
+            node.prev_y=BALL_START_Y + INITIAL_VELOCITY_Y
 
 
 if __name__ == "__main__":
@@ -227,7 +254,8 @@ if __name__ == "__main__":
                         BALL_START_X,
                         BALL_START_Y,
                         Util.getRandomRadius(),
-                        Util.getRandomColor(),
+                        # Util.getRandomColor(),
+                        WHITE,
                         prev_x=BALL_START_X - INITIAL_VELOCITY_X,
                         prev_y=BALL_START_Y + INITIAL_VELOCITY_Y,
         )
@@ -242,17 +270,6 @@ if __name__ == "__main__":
             counter += 1
 
             if counter == 1:
-                # counter = 0
-                # nodes.append(
-                #     Node(
-                #         BALL_START_X,
-                #         BALL_START_Y,
-                #         Util.getRandomRadius(),
-                #         Util.getRandomColor(),
-                #         prev_x=BALL_START_X - INITIAL_VELOCITY_X,
-                #         prev_y=BALL_START_Y + INITIAL_VELOCITY_Y,
-                #     )
-                # )  # start node with initial x velocity
                 counter = 0
                 nodes.append(reserved_nodes[nodes_added])
                 nodes_added += 1
@@ -325,10 +342,16 @@ if __name__ == "__main__":
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    Util.applyImageToNodeColors(sys.argv[1], reserved_nodes)
+                    nodes = []
+                    nodes_added = 0
+                    
         # Space stops particles momentarily
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_SPACE]:
+        if keys[pygame.K_DOWN]:
             for node in nodes:
                 node.prev_x = node.x
                 node.prev_y = node.y
