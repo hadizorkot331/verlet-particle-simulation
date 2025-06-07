@@ -204,7 +204,8 @@ class Util:
                                                     )
     
     # @classmethod
-    # def applyImageToNodes()
+    # def applyImageToNodes(cls, imgPath: str, reserved_nodes: list[Node]):
+
 
 
 if __name__ == "__main__":
@@ -235,7 +236,7 @@ if __name__ == "__main__":
 
     nodes = []
     while running:
-        dt = clock.tick(FPS) / 1000  # Convert to seconds
+        dt = 0.016
 
         if nodes_added < NUM_BALLS:
             counter += 1
@@ -314,7 +315,7 @@ if __name__ == "__main__":
             node.draw(window)
 
         # Print FPS
-        Util.printText(font, f"FPS:{str(round(1/dt))}", window, (WIDTH - 100, 25))
+        Util.printText(font, f"FPS:{str(round(1/(clock.tick(FPS)/1000)))}", window, (WIDTH - 100, 25))
 
         # Print number of balls added so far
         Util.printText(font, f"Balls:{str(len(nodes))}", window, (WIDTH - 100, 50))
