@@ -8,8 +8,8 @@ from threading import Thread
 WIDTH: int = 1600
 HEIGHT: int = 900
 
-GRAVITY: float = 1100
-DAMPING: float = 0.97  # Simulates air resistance
+GRAVITY: float = 1
+DAMPING: float = 0.999  # Simulates air resistance
 ELASTICITY: float = 0.5  # How bouncy the walls are
 
 RADIUS: float = 5
@@ -19,17 +19,15 @@ MAX_RADIUS_FACTOR: float = 1  # MAX_RADIUS_FACTOR * RADIUS is the biggest ball
 # Desired maximum FPS
 FPS: int = 60
 
-NUM_BALLS: int = 1000
+NUM_BALLS: int = 2600
 
-INITIAL_VELOCITY_X: float = 5
+INITIAL_VELOCITY_X: float = 6
 INITIAL_VELOCITY_Y: float = 0
-
-MAX_DELTA: float = 5
 
 # Rows and columns of the space partition
 # Ensure that HEIGHT / PARTITION_ROWS > RADIUS, WIDTH / PARTITION_COLS > RADIUS so that the ball doesnt belong to multiple cells
-PARTITION_ROWS: int = 72
-PARTITION_COLS: int = 128
+PARTITION_ROWS: int = 120
+PARTITION_COLS: int = 180
 
 # SHOULD ALWAYS BE > BOUNDARYIES DEFINED BELOW
 BALL_START_X: int = WIDTH // 2
@@ -37,8 +35,8 @@ BALL_START_Y: int = HEIGHT // 2
 
 # bounding box of balls. NOTE: not fully working since space partitioning does not take this into account, so
 # higher values of these will lead to worse performance
-LEFT_RIGHT_BOUNDARY: int = 0
-UP_DOWN_BOUNDARY: int = 0
+LEFT_RIGHT_BOUNDARY: int = WIDTH // 3
+UP_DOWN_BOUNDARY: int = HEIGHT // 4
 
 # Number of threads for mulithreading
 NUM_THREADS: int = 4
@@ -79,9 +77,6 @@ class Verlet:
         # Apply verlet equation to x and y
         dx = (node.x - node.prev_x) * DAMPING + accel_x * (dt**2)
         dy = (node.y - node.prev_y) * DAMPING + accel_y * (dt**2)
-
-        # dx = max(-MAX_DISPLACEMENT, min(MAX_DISPLACEMENT, dx))
-        # dy = max(-MAX_DISPLACEMENT, min(MAX_DISPLACEMENT, dy))
 
         node.x += dx
         node.y += dy
@@ -183,24 +178,6 @@ class Util:
         window.blit(t, location)
 
     @classmethod
-    def clampSpeed(cls, node: Node) -> None:
-        curr_delta_x: float = abs(node.x - node.prev_x)
-
-        if curr_delta_x > MAX_DELTA:
-            if curr_delta_x < 0:
-                node.prev_x = node.x + MAX_DELTA
-            else:
-                node.prev_x = node.x - MAX_DELTA
-
-        curr_delta_y: float = abs(node.y - node.prev_y)
-
-        if curr_delta_y > MAX_DELTA:
-            if curr_delta_y < 0:
-                node.prev_y = node.y + MAX_DELTA
-            else:
-                node.prev_y = node.y - MAX_DELTA
-
-    @classmethod
     def performMultithreadedCollisionHandling(
         cls, partition_matrix: list[list[set[Node]]], startCol: int, endCol: int
     ) -> None:
@@ -270,13 +247,6 @@ if __name__ == "__main__":
             if CollisionHandler.isOutOfBounds(node):
                 CollisionHandler.fixBoundary(node)
 
-        # Handle collisions (multiple iterations for stability)
-        # for iteration in range(2):
-        #     for i, nodeOne in enumerate(nodes):
-        #         for j, nodeTwo in enumerate(nodes[i+1:], i+1):  # Avoid checking same pair twice
-        #             if CollisionHandler.isColliding(nodeOne, nodeTwo):
-        #                 CollisionHandler.fixCollision(nodeOne, nodeTwo)
-
         # Create subspace partition matrix
         partition_matrix: list[list[set[Node]]] = []
         for i in range(PARTITION_ROWS):
@@ -322,29 +292,8 @@ if __name__ == "__main__":
         for thread in odds:
             thread.join()
 
-        # for row in range(PARTITION_ROWS):
-        #     for col in range(PARTITION_COLS):
-        #         for node in partition_matrix[row][col]:
-        #             for drows in range(-1, 2, 1):
-        #                 if row + drows >= 0 and row + drows < PARTITION_ROWS:
-        #                     for dcols in range(-1, 2, 1):
-        #                         if (
-        #                             col + dcols >= 0
-        #                             and col + dcols < PARTITION_COLS
-        #                         ):
-        #                             for otherNode in partition_matrix[row + drows][
-        #                                 col + dcols
-        #                             ]:
-        #                                 if node is not otherNode:
-        #                                     if CollisionHandler.isColliding(
-        #                                         node, otherNode
-        #                                     ):
-        #                                         CollisionHandler.fixCollision(
-        #                                             node, otherNode
-        #                                         )
 
         for node in nodes:
-            # Util.clampSpeed(node)
             node.draw(window)
 
         # Print FPS
