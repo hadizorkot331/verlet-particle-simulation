@@ -202,6 +202,9 @@ class Util:
                                                     CollisionHandler.fixCollision(
                                                         node, otherNode
                                                     )
+    
+    # @classmethod
+    # def applyImageToNodes()
 
 
 if __name__ == "__main__":
@@ -218,6 +221,18 @@ if __name__ == "__main__":
     running = True
     counter = 0
     nodes_added = 0
+    reserved_nodes = [
+        Node(
+                        BALL_START_X,
+                        BALL_START_Y,
+                        Util.getRandomRadius(),
+                        Util.getRandomColor(),
+                        prev_x=BALL_START_X - INITIAL_VELOCITY_X,
+                        prev_y=BALL_START_Y + INITIAL_VELOCITY_Y,
+        )
+        for _ in range(NUM_BALLS)
+    ]
+
     nodes = []
     while running:
         dt = clock.tick(FPS) / 1000  # Convert to seconds
@@ -226,17 +241,19 @@ if __name__ == "__main__":
             counter += 1
 
             if counter == 1:
+                # counter = 0
+                # nodes.append(
+                #     Node(
+                #         BALL_START_X,
+                #         BALL_START_Y,
+                #         Util.getRandomRadius(),
+                #         Util.getRandomColor(),
+                #         prev_x=BALL_START_X - INITIAL_VELOCITY_X,
+                #         prev_y=BALL_START_Y + INITIAL_VELOCITY_Y,
+                #     )
+                # )  # start node with initial x velocity
                 counter = 0
-                nodes.append(
-                    Node(
-                        BALL_START_X,
-                        BALL_START_Y,
-                        Util.getRandomRadius(),
-                        Util.getRandomColor(),
-                        prev_x=BALL_START_X - INITIAL_VELOCITY_X,
-                        prev_y=BALL_START_Y + INITIAL_VELOCITY_Y,
-                    )
-                )  # start node with initial x velocity
+                nodes.append(reserved_nodes[nodes_added])
                 nodes_added += 1
 
         window.fill((0, 0, 0))
