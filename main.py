@@ -222,12 +222,12 @@ class Util:
         import PIL.Image
         import numpy as np
 
-        image = PIL.Image.open(imgPath).resize((_BORDER_HEIGHT, _BORDER_WIDTH)).convert("RGB")
+        image = PIL.Image.open(imgPath).resize((_BORDER_WIDTH, _BORDER_HEIGHT)).convert("RGB")
         image = np.array(image)
 
         for node in reserved_nodes:
             relative_x, relative_y = cls.getRelativePos(node, _BORDER_TOP, _BORDER_SIDE)
-            r, g, b = image[relative_x][relative_y]
+            r, g, b = image[relative_y][relative_x]
             node.color = (r, g, b)
             node.x = BALL_START_X
             node.y = BALL_START_Y
