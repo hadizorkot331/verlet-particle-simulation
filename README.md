@@ -1,5 +1,7 @@
 # Verlet Particle Simulation with Space Partitioning and Image Mapping
 
+![VerletDemp](https://github.com/user-attachments/assets/d100fcf8-3185-4df3-938f-7ba01074e30d)
+
 This is a high-performance 2D particle simulation built with **Pygame** that demonstrates:
 - Verlet integration for motion
 - Collision resolution between thousands of particles
